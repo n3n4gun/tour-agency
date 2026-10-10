@@ -23,11 +23,13 @@ public class HotelModel {
     @Column(name = "stars", nullable = false)
     private int stars;
 
-    @Column(name = "address", nullable = false, unique = true, length = 300)
+    @Column(name = "address", nullable = false, length = 255)
     private String address;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
+    protected HotelModel() {}
 
     public HotelModel(String cityName, String hotelName, int stars, String address, String description) {
         this.setCityName(cityName);
@@ -58,12 +60,10 @@ public class HotelModel {
     }
 
     public void setStars(int stars) {
-        if (stars >= 1 || stars <= 5) {
-            this.stars = stars;
+        if (stars < 1 || stars > 5) {
+            throw new IllegalArgumentException("Количество звезд должно быть от 1 до 5");
         }
-        else {
-            this.stars = 5;
-        }
+        this.stars = stars;
     }
 
     public int getStars() {

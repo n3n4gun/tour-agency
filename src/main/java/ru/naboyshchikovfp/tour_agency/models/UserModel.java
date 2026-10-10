@@ -6,6 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,7 +21,7 @@ public class UserModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "id", nullable = false, unique = true, length = 100)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)
@@ -35,8 +37,9 @@ public class UserModel {
     @Column(name = "phone", length = 20)
     private String phone;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
-    private String role;
+    private UserRole role = UserRole.USER;
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
@@ -45,15 +48,19 @@ public class UserModel {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public UserModel(String email, String passwordHash, String firstName, String lastName, String phone, String role, boolean enabled, LocalDateTime createdAt) {
+    protected UserModel() {}
+
+    public UserModel(String email, String passwordHash, String firstName, String lastName, String phone, boolean enabled) {
         this.setEmail(email);
         this.setPasswordHash(passwordHash);
         this.setFirstName(firstName);
         this.setLastName(lastName);
         this.setPhone(phone);
-        this.setRole(role);
         this.setEnabled(enabled);
-        this.setCreatedAt(createdAt);
+    }
+
+    public Long getId() {
+        return this.id;
     }
 
     public void setEmail(String email) {
@@ -96,11 +103,11 @@ public class UserModel {
         return this.phone;
     }
 
-    public void setRole(String role) {
+    public void setRole(UserRole role) {
         this.role = role;
     }
 
-    public String getRole() {
+    public UserRole getRole() {
         return this.role;
     }
 
@@ -108,12 +115,8 @@ public class UserModel {
         this.enabled = enabled;
     }
 
-    public boolean getEnabled() {
+    public boolean isEnabled() {
         return this.enabled;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 
     public LocalDateTime getCreatedAt() {
