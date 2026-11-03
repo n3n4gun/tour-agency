@@ -27,23 +27,30 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // Передаёт зависимости сервиса через конструктор.
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Проверяет регистрационные данные, хеширует пароль и сохраняет пользователя.
     @Transactional 
     public UserModel register(@NotNull @Valid UserRegistrationDto dto) {
         String email = dto.getEmail().trim().toLowerCase(Locale.ROOT);
         String phone;
 
+
+        // Отклоняем регистрацию, если пароль и его подтверждение не совпадают.
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
             throw new ValidationException("confirmPassword", "Пароли не совпадают");
         }
+        // Проверяем, не занят ли нормализованный email.
         if (userRepository.existsByEmail(email)) {
             throw new ValidationException("email", "Пользователь с таким email уже зарегистрирован");
         }
 
+
+        // Если телефон не заполнен, сохраняем null; иначе убираем пробелы по краям.
         if (dto.getPhone() == null || dto.getPhone().isBlank()) {
             phone = null;
         } else {
@@ -57,7 +64,7 @@ public class UserService {
 
     }
 
-    // readOnly = true - транзакция только на чтение
+    // Возвращает профиль пользователя без пароля и роли.
     @Transactional(readOnly = true)
     public UserProfileDto getProfile(Long userId) {
         UserModel user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -66,7 +73,7 @@ public class UserService {
 
     }
 
-    // метод обновления пользовательских данных
+    // Обновляет профиль; JPA сохраняет изменения при завершении транзакции.
     @Transactional 
     public void updateProfile(Long userId, @NotNull @Valid UserProfileDto dto) {
         UserModel user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -75,11 +82,12 @@ public class UserService {
         user.setLastName(dto.getLastName().trim());
 
         String phone = dto.getPhone();
+        // Пустой телефон заменяем на null, у заполненного убираем пробелы по краям.
         user.setPhone(phone == null || phone.isBlank() ? null : phone.trim());
 
     }
 
-    // true - разблокировать пользователя, false - заблокировать пользователя
+    // Позволяет администратору блокировать (false) и разблокировать (true) пользователя.
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional 
     public void setEnabled(Long userId, boolean enabled) {
@@ -87,6 +95,7 @@ public class UserService {
         user.setEnabled(enabled);
     }
 
+    // Возвращает администратору страницу пользователей без хешей паролей.
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional(readOnly = true)
     public Page<UserListDto> getUsers(Pageable pageable) {

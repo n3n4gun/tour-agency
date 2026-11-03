@@ -16,10 +16,12 @@ import ru.naboyshchikovfp.tour_agency.repositories.UserRepository;
 public class CustomUserDetailsService implements UserDetailsService{
     private final UserRepository userRepository;
 
+    // Передаёт репозиторий для поиска пользователя при входе.
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
+    // Загружает по email хеш пароля, роль и признак блокировки для Spring Security.
     @Override 
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

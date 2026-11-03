@@ -115,12 +115,12 @@ public class BookingModel {
         this.status = status;
     }
 
-    public BigDecimal getTotalPrice() {
-        return this.totalPrice;
-    }
-
     public BookingStatus getStatus() {
         return this.status;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return this.totalPrice;
     }
 
 }
