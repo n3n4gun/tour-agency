@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="register-page">
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+    </nav>
+    <main class="auth-card">
+        <h1>Регистрация</h1>
+
+        <form class="auth-form" th:action="@{/register}"
+              th:object="${userRegistrationDto}"
+              method="post">
+
+            <div>
+                <label for="email">Email</label>
+                <input type="email" th:field="*{email}"
+                       autocomplete="email" required>
+                <p th:errors="*{email}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="password">Пароль</label>
+                <input type="password" th:field="*{password}"
+                       autocomplete="new-password" required>
+                <p th:errors="*{password}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="confirmPassword">Повторите пароль</label>
+                <input type="password" th:field="*{confirmPassword}"
+                       autocomplete="new-password" required>
+                <p th:errors="*{confirmPassword}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="firstName">Имя</label>
+                <input type="text" th:field="*{firstName}"
+                       autocomplete="given-name" required>
+                <p th:errors="*{firstName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="lastName">Фамилия</label>
+                <input type="text" th:field="*{lastName}"
+                       autocomplete="family-name" required>
+                <p th:errors="*{lastName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="phone">Телефон</label>
+                <input type="tel" th:field="*{phone}"
+                       autocomplete="tel">
+                <p th:errors="*{phone}" role="alert"></p>
+            </div>
+
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+
+        <p>
+            Уже есть аккаунт?
+            <a th:href="@{/login}">Войти</a>
+        </p>
+    </main>
+</body>
+</html>

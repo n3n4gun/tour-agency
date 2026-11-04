@@ -1,0 +1,225 @@
+/* Общая палитра и размеры для всех страниц приложения. */
+:root {
+    color-scheme: light;
+    --background: #f5f6f2;
+    --surface: #fff;
+    --text: #183b38;
+    --muted: #627773;
+    --accent: #146c60;
+    --accent-hover: #0d5148;
+    --border: #dce5de;
+    --error: #a03232;
+    --radius: 20px;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    max-width: 1200px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 28px 32px 64px;
+    background: var(--background);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+a { color: var(--accent); text-underline-offset: 4px; }
+a:hover { color: var(--accent-hover); }
+
+/* Видимый фокус нужен при управлении с клавиатуры. */
+:focus-visible { outline: 3px solid #d58b30; outline-offset: 4px; }
+
+h1, h2, h3 { line-height: 1.2; overflow-wrap: anywhere; }
+h1 { margin: 36px 0 28px; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -.04em; }
+h2 { font-size: 1.5rem; letter-spacing: -.025em; }
+h3 { font-size: 1.1rem; }
+p { margin: 0 0 16px; }
+
+.site-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    min-height: 58px;
+    padding: 14px 22px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+}
+
+.site-nav a { font-weight: 600; text-decoration: none; }
+.site-nav a:hover { text-decoration: underline; }
+.nav-account, .nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; }
+.nav-account { margin-left: auto; }
+.nav-account p { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+.nav-account form { margin: 0; }
+
+.button, button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 11px 22px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s;
+}
+
+.button:hover, button:hover { background: var(--accent-hover); color: #fff; }
+.button-secondary { background: transparent; color: var(--accent); border-color: var(--border); }
+.button-secondary:hover { background: #e6f0e9; color: var(--accent-hover); }
+
+/* Главная страница: крупная типографика и декоративный фон без загрузки изображений. */
+.hero {
+    position: relative;
+    overflow: hidden;
+    margin-top: 32px;
+    padding: clamp(32px, 6vw, 76px);
+    border: 1px solid #cdded2;
+    border-radius: 28px;
+    background: radial-gradient(ellipse at 100% 0, #d3e9da 0, transparent 60%), #eaf1e7;
+}
+
+.eyebrow { color: var(--accent); font-size: .78rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.hero h1 { max-width: 780px; margin: 20px 0; font-size: clamp(2.5rem, 7vw, 5.5rem); line-height: 1.04; }
+.hero > p:not(.eyebrow) { max-width: 520px; color: var(--muted); font-size: 1.15rem; }
+.hero .button { margin-top: 20px; }
+
+/* Формы регистрации и входа. */
+.auth-card {
+    max-width: 510px;
+    margin: 40px auto 0;
+    padding: 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: 0 12px 40px #183b3808;
+}
+
+.register-page .auth-card { max-width: 720px; }
+.auth-card h1 { margin: 0 0 28px; font-size: 2rem; }
+.auth-card > p:last-child { margin: 24px 0 0; color: var(--muted); text-align: center; }
+.auth-form { display: grid; gap: 20px; }
+.register-page .auth-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.auth-form > button { grid-column: 1 / -1; }
+
+label { display: block; margin-bottom: 7px; font-size: .9rem; font-weight: 600; }
+input:not([type="hidden"]) {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 13px;
+    border: 1px solid #cbd9d0;
+    border-radius: 9px;
+    background: #fcfdfb;
+    color: var(--text);
+    font: inherit;
+}
+
+input:not([type="hidden"]):focus { border-color: var(--accent); }
+.auth-form div > p, .filter-form div > p { margin: 6px 0 0; color: var(--error); font-size: .85rem; }
+.notice { margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; background: #eaf5eb; color: #245735; }
+[role="alert"] { color: var(--error); }
+.notice[role="alert"] { background: #fff0ed; }
+
+/* Каталог: компактная панель поиска и сетка карточек. */
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.filter-form > [role="alert"] { grid-column: 1 / -1; margin: 0; }
+.filter-actions { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
+.results > p:first-child { color: var(--muted); }
+.results > p:first-child span { color: var(--text); font-weight: 700; }
+.tour-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.tour-card {
+    padding: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.tour-card h2 { margin: 0 0 18px; }
+.tour-card > p { margin: 0 0 10px; color: var(--muted); }
+.tour-card > p span { color: var(--text); font-weight: 500; }
+.tour-card .button { margin-top: 14px; }
+.pagination { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 24px; margin-top: 32px; }
+.pagination > a { padding: 8px 16px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); text-decoration: none; }
+
+/* Карточка тура и отзывы. */
+.details-main { max-width: 900px; margin: 0 auto; }
+.details-main > p { color: var(--muted); white-space: pre-line; overflow-wrap: anywhere; }
+.details-main dl {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) 2fr;
+    margin: 28px 0 44px;
+    padding: 12px 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+dt, dd { margin: 0; padding: 15px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+dt { padding-right: 20px; color: var(--muted); }
+dd { font-weight: 600; }
+dt:nth-last-child(2), dd:last-child { border-bottom: 0; }
+.reviews h2 { margin-bottom: 24px; }
+.review-card { margin-bottom: 16px; padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.review-card h3 { margin: 0 0 12px; }
+.review-card > p { overflow-wrap: anywhere; white-space: pre-line; }
+.review-card > p:last-child { margin: 0; color: var(--muted); font-size: .85rem; }
+.review-card > p:first-of-type span { color: var(--accent); font-weight: 700; }
+.empty-state { padding: 24px; border: 1px dashed #bdcec3; border-radius: 14px; color: var(--muted); text-align: center; }
+
+/* Страница отсутствующей записи. */
+.error-card { max-width: 700px; margin: 10vh auto 0; padding: 48px; border: 1px solid var(--border); border-radius: 24px; background: var(--surface); text-align: center; }
+.error-code { margin: 0; color: #94b4a4; font-size: 6rem; font-weight: 700; line-height: 1; letter-spacing: -.06em; }
+.error-card h1 { margin: 24px 0 18px; font-size: 2rem; }
+.error-card > p:not(.error-code) { color: var(--muted); }
+.error-card .site-nav { justify-content: center; margin-top: 28px; border: 0; padding: 0; }
+
+/* На узких экранах формы и карточки перестраиваются в одну колонку. */
+@media (max-width: 720px) {
+    body { padding: 16px 18px 40px; }
+    h1 { margin-top: 28px; }
+    .site-nav { padding: 14px 16px; gap: 12px 18px; }
+    .nav-account { margin-left: 0; width: 100%; }
+    .hero { margin-top: 20px; }
+    .filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 22px; }
+    .tour-grid { grid-template-columns: minmax(0, 1fr); }
+    .auth-card { margin-top: 24px; padding: 26px; }
+    .error-card { margin-top: 48px; padding: 28px; }
+}
+
+@media (max-width: 440px) {
+    .filter-form, .register-page .auth-form { grid-template-columns: minmax(0, 1fr); }
+    .filter-actions { align-items: stretch; flex-direction: column; }
+    .filter-actions > a { text-align: center; }
+    .details-main dl { grid-template-columns: minmax(0, 1fr); padding: 14px 22px; }
+    dt { padding: 12px 0 0; border: 0; font-size: .85rem; }
+    dd { padding: 4px 0 12px; }
+    .pagination { gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+}

@@ -10,6 +10,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 @Configuration 
 @EnableMethodSecurity 
@@ -32,9 +36,42 @@ public class SecurityConfig {
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated()
         )
-        .formLogin(Customizer.withDefaults())
+
+        .formLogin(form -> form
+            .loginPage("/login")            // Использует страницу, которую возвращает LoginController
+            .loginProcessingUrl("/login")   // Spring Security принимает отправку формы через POST /login
+            .failureUrl("/login?error")     // При неудачном входе перенаправляет обратно с параметром ошибки
+            .successHandler(authenticationSuccessHandler())
+            .permitAll()                    // Разрешает гостям доступ к адресам входа
+        )
+
         .logout(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    // Администратор попадает в управление заявками; для клиента сохраняется возврат к запрошенной странице.
+    @Bean
+    public AuthenticationSuccessHandler authenticationSuccessHandler() {
+        SavedRequestAwareAuthenticationSuccessHandler clientHandler =
+                new SavedRequestAwareAuthenticationSuccessHandler();
+        clientHandler.setDefaultTargetUrl("/");
+
+        SimpleUrlAuthenticationSuccessHandler adminHandler =
+                new SimpleUrlAuthenticationSuccessHandler("/admin/bookings");
+        adminHandler.setAlwaysUseDefaultTargetUrl(true);
+
+        return (request, response, authentication) -> {
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+            // Не возвращаем администратора на сохранённый клиентский адрес, например /bookings.
+            if (isAdmin) {
+                new HttpSessionRequestCache().removeRequest(request, response);
+                adminHandler.onAuthenticationSuccess(request, response, authentication);
+            } else {
+                clientHandler.onAuthenticationSuccess(request, response, authentication);
+            }
+        };
     }
 }

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог туров</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+    </nav>
+
+    <h1>Каталог туров</h1>
+
+    <!-- GET-форма передаёт фильтры в параметрах адреса. -->
+    <form class="filter-form" th:action="@{/tours}" th:object="${filter}" method="get">
+        <p th:if="${#fields.hasErrors('*')}" role="alert">
+            Исправьте параметры поиска.
+        </p>
+
+        <div>
+            <label for="cityName">Город</label>
+            <input type="text" th:field="*{cityName}">
+        </div>
+
+        <div>
+            <label for="tourTypeName">Вид тура</label>
+            <input type="text" th:field="*{tourTypeName}">
+        </div>
+
+        <div>
+            <label for="minPrice">Цена за взрослого от</label>
+            <input type="number" th:field="*{minPrice}"
+                   min="0" step="0.01">
+            <p th:errors="*{minPrice}" role="alert"></p>
+        </div>
+
+        <div>
+            <label for="maxPrice">Цена за взрослого до</label>
+            <input type="number" th:field="*{maxPrice}"
+                   min="0" step="0.01">
+            <p th:errors="*{maxPrice}" role="alert"></p>
+        </div>
+
+        <div>
+            <label for="minNights">Количество ночей от</label>
+            <input type="number" th:field="*{minNights}"
+                   min="1" step="1">
+            <p th:errors="*{minNights}" role="alert"></p>
+        </div>
+
+        <div>
+            <label for="maxNights">Количество ночей до</label>
+            <input type="number" th:field="*{maxNights}"
+                   min="1" step="1">
+            <p th:errors="*{maxNights}" role="alert"></p>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit">Найти туры</button>
+            <a th:href="@{/tours}">Сбросить фильтры</a>
+        </div>
+    </form>
+
+    <!-- При ошибках фильтра скрываем результаты и переключение страниц. -->
+    <section class="results" th:unless="${#fields.hasErrors('filter.*')}">
+        <p>
+            Найдено туров:
+            <span th:text="${toursPage.totalElements}"></span>
+        </p>
+
+        <p class="empty-state" th:if="${toursPage.empty}">
+            По заданным условиям туры не найдены.
+        </p>
+
+        <!-- Для каждого тура текущей страницы создаётся отдельный блок. -->
+        <div class="tour-grid">
+            <article class="tour-card" th:each="tour : ${toursPage.content}">
+                <h2 th:text="${tour.tourName}"></h2>
+
+
+                <p>
+                    Город:
+                    <span th:text="${tour.cityName}"></span>
+                </p>
+
+                <p>
+                    Отель:
+                    <span th:text="${tour.hotelName}"></span>,
+                    звёзд:
+                    <span th:text="${tour.hotelStars}"></span>
+                </p>
+
+                <p>
+                    Вид тура:
+                    <span th:text="${tour.tourTypeName}"></span>
+                </p>
+
+                <p>
+                    Количество ночей:
+                    <span th:text="${tour.durationNights}"></span>
+                </p>
+
+                <p>
+                    Цена за взрослого:
+                    <span th:text="${tour.pricePerAdultPerson}"></span>
+                </p>
+
+                <p>
+                    Цена за ребёнка:
+                    <span th:text="${tour.pricePerChildPerson}"></span>
+                </p>
+                <a class="button" th:href="@{/tours/{id}(id=${tour.id})}">Подробнее →</a>
+            </article>
+        </div>
+        <!-- Показываем навигацию, только если результатов больше одной страницы. -->
+        <nav class="pagination" th:if="${toursPage.totalPages > 1}"
+            aria-label="Страницы каталога">
+
+            <a th:if="${toursPage.hasPrevious()}"
+               th:href="@{/tours(
+                   page=${toursPage.number - 1},
+                   cityName=${filter.cityName},
+                   tourTypeName=${filter.tourTypeName},
+                   minPrice=${filter.minPrice},
+                   maxPrice=${filter.maxPrice},
+                   minNights=${filter.minNights},
+                   maxNights=${filter.maxNights}
+               )}">
+                Назад
+            </a>
+
+            <span>
+                Страница
+                <span th:text="${toursPage.number + 1}"></span>
+                из
+                <span th:text="${toursPage.totalPages}"></span>
+            </span>
+
+            <a th:if="${toursPage.hasNext()}"
+               th:href="@{/tours(
+                   page=${toursPage.number + 1},
+                   cityName=${filter.cityName},
+                   tourTypeName=${filter.tourTypeName},
+                   minPrice=${filter.minPrice},
+                   maxPrice=${filter.maxPrice},
+                   minNights=${filter.minNights},
+                   maxNights=${filter.maxNights}
+               )}">
+                Далее
+            </a>
+        </nav>
+    </section>
+</body>
+</html>

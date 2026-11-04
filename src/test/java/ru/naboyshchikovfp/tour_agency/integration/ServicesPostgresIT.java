@@ -1,6 +1,12 @@
 package ru.naboyshchikovfp.tour_agency.integration;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ru.naboyshchikovfp.tour_agency.support.TestData.*;
 
 import java.math.BigDecimal;
@@ -21,6 +27,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -68,6 +77,7 @@ class ServicesPostgresIT {
     @Autowired ReviewRepository reviews;
     @Autowired PasswordEncoder passwordEncoder;
     @Autowired JdbcTemplate jdbc;
+    @Autowired WebApplicationContext webContext;
 
     UserModel client;
     UserModel otherClient;
@@ -94,6 +104,12 @@ class ServicesPostgresIT {
     private void loginClient() { authenticate(client.getEmail(), "USER"); }
     private void loginManager() { authenticate("manager@example.com", "MANAGER"); }
     private void loginAdmin() { authenticate("admin@example.com", "ADMIN"); }
+
+    private MockMvc web() {
+        return MockMvcBuilders.webAppContextSetup(webContext)
+                .apply(springSecurity())
+                .build();
+    }
 
     private BookingModel storedBooking(UserModel owner, BookingStatus status, LocalDate departure) {
         BookingModel booking = new BookingModel(owner, tour, departure, 2, 1);
@@ -254,6 +270,71 @@ class ServicesPostgresIT {
         loginClient();
         bookingService.payMyBooking(id);
         assertThat(bookings.findById(id).orElseThrow().getStatus()).isEqualTo(BookingStatus.PAID);
+    }
+
+    @Test
+    void clientCanPayThroughWebAfterAdminConfirmation() throws Exception {
+        var booking = storedBooking(client, BookingStatus.NEW, LocalDate.now().plusDays(10));
+        Long id = booking.getId();
+        MockMvc mvc = web();
+
+        mvc.perform(post("/admin/bookings/{id}/confirm", id)
+                        .with(user("admin@example.com").roles("ADMIN")).with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/bookings"));
+        assertThat(bookings.findById(id).orElseThrow().getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+
+        // Проверяем реальный рендеринг Thymeleaf и наличие кнопки оплаты.
+        mvc.perform(get("/bookings").with(user(client.getEmail()).roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/bookings/" + id + "/pay")));
+
+        mvc.perform(post("/bookings/{id}/pay", id)
+                        .with(user(client.getEmail()).roles("USER")).with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/bookings"))
+                .andExpect(flash().attributeExists("successMessage"));
+        assertThat(bookings.findById(id).orElseThrow().getStatus()).isEqualTo(BookingStatus.PAID);
+
+        mvc.perform(get("/bookings").with(user(client.getEmail()).roles("USER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("/bookings/" + id + "/pay"))));
+    }
+
+    @Test
+    void webPaymentShowsBusinessErrorWithoutChangingStatus() throws Exception {
+        var booking = storedBooking(client, BookingStatus.NEW, LocalDate.now().plusDays(10));
+        web().perform(post("/bookings/{id}/pay", booking.getId())
+                        .with(user(client.getEmail()).roles("USER")).with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/bookings"))
+                .andExpect(flash().attributeExists("errorMessage"))
+                .andExpect(flash().attributeCount(1));
+        assertThat(bookings.findById(booking.getId()).orElseThrow().getStatus()).isEqualTo(BookingStatus.NEW);
+    }
+
+    @Test
+    void webPaymentCannotAccessAnotherClientsBooking() throws Exception {
+        var booking = storedBooking(otherClient, BookingStatus.CONFIRMED, LocalDate.now().plusDays(10));
+        web().perform(post("/bookings/{id}/pay", booking.getId())
+                        .with(user(client.getEmail()).roles("USER")).with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error/404"));
+        assertThat(bookings.findById(booking.getId()).orElseThrow().getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+    }
+
+    @Test
+    void webPaymentRequiresCsrfAndClientRole() throws Exception {
+        var booking = storedBooking(client, BookingStatus.CONFIRMED, LocalDate.now().plusDays(10));
+        MockMvc mvc = web();
+        mvc.perform(post("/bookings/{id}/pay", booking.getId())
+                        .with(user(client.getEmail()).roles("USER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/bookings/{id}/pay", booking.getId())
+                        .with(user("admin@example.com").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isForbidden());
+        assertThat(bookings.findById(booking.getId()).orElseThrow().getStatus()).isEqualTo(BookingStatus.CONFIRMED);
     }
 
     @Test

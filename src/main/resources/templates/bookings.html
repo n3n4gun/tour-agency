@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои бронирования</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/tours}">Каталог туров</a>
+    </nav>
+
+    <main>
+        <h1>Мои бронирования</h1>
+
+        <p class="notice" th:if="${param.created}" role="status">
+            Бронирование создано. Ожидайте подтверждения сотрудником.
+        </p>
+
+        <p class="notice"
+           th:if="${successMessage != null}"
+           th:text="${successMessage}"
+           role="status">
+        </p>
+
+        <p class="notice"
+           th:if="${errorMessage != null}"
+           th:text="${errorMessage}"
+           role="alert">
+        </p>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(bookings)}">
+            У вас пока нет бронирований.
+            <a th:href="@{/tours}">Выбрать тур</a>
+        </p>
+
+        <div class="tour-grid">
+            <!-- Каждая карточка представляет одну поездку пользователя. -->
+            <article class="tour-card" th:each="booking : ${bookings}">
+                <h2 th:text="${booking.tourName}"></h2>
+
+                <p>
+                    Номер бронирования:
+                    <span th:text="${booking.id}"></span>
+                </p>
+
+                <p>
+                    Дата отправления:
+                    <time th:datetime="${booking.departureDate}"
+                          th:text="${#temporals.format(
+                              booking.departureDate, 'dd.MM.yyyy'
+                          )}">
+                    </time>
+                </p>
+
+                <p>
+                    Взрослых:
+                    <span th:text="${booking.adultsCount}"></span>,
+                    детей:
+                    <span th:text="${booking.childrenCount}"></span>
+                </p>
+
+                <p>
+                    Итоговая стоимость:
+                    <span th:text="${booking.totalPrice}"></span>
+                </p>
+
+                <!-- Показываем понятное название вместо значения enum. -->
+                <p th:switch="${booking.status.name()}">
+                    Статус:
+                    <span th:case="'NEW'">Ожидает подтверждения</span>
+                    <span th:case="'CONFIRMED'">Подтверждено</span>
+                    <span th:case="'PAID'">Оплачено</span>
+                    <span th:case="'COMPLETED'">Поездка завершена</span>
+                    <span th:case="'CANCELLED'">Отменено</span>
+                    <span th:case="*" th:text="${booking.status}"></span>
+                </p>
+
+                <a class="button button-secondary"
+                   th:href="@{/tours/{id}(id=${booking.tourId})}">
+                    Посмотреть тур
+                </a>
+
+                <!-- Это учебная имитация оплаты без списания денежных средств. -->
+                <form th:if="${booking.status.name() == 'CONFIRMED'}"
+                      th:action="@{/bookings/{id}/pay(id=${booking.id})}"
+                      method="post">
+                    <p>Учебная оплата: реальные деньги не списываются.</p>
+                    <button type="submit">Оплатить (учебная оплата)</button>
+                </form>
+
+                <!-- Отмена доступна для новых и подтверждённых заявок; дату проверяет сервис. -->
+                <form th:if="${booking.status.name() == 'NEW'
+                               or booking.status.name() == 'CONFIRMED'}"
+                      th:action="@{/bookings/{id}/cancel(id=${booking.id})}"
+                      method="post">
+                    <button class="button-secondary" type="submit">
+                        Отменить бронирование
+                    </button>
+                </form>
+            </article>
+        </div>
+    </main>
+</body>
+</html>

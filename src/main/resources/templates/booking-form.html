@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бронирование тура</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/tours/{id}(id=${tour.id})}">Вернуться к туру</a>
+    </nav>
+
+    <main class="auth-card">
+        <h1>Бронирование</h1>
+
+        <h2 th:text="${tour.tourName}"></h2>
+
+        <p>
+            Цена за взрослого:
+            <span th:text="${tour.pricePerAdultPerson}"></span>
+        </p>
+
+        <p>
+            Цена за ребёнка:
+            <span th:text="${tour.pricePerChildPerson}"></span>
+        </p>
+
+        <!-- В адресе передаём тур, а в полях — параметры поездки. -->
+        <form class="auth-form"
+              th:action="@{/bookings/new/{id}(id=${tour.id})}"
+              th:object="${bookingDto}"
+              method="post">
+
+            <div>
+                <label for="departureDate">Дата отправления</label>
+                <input type="date"
+                       th:field="*{departureDate}"
+                       required>
+                <p th:errors="*{departureDate}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="adultsCount">Количество взрослых</label>
+                <input type="number"
+                       th:field="*{adultsCount}"
+                       min="1"
+                       step="1"
+                       required>
+                <p th:errors="*{adultsCount}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="childrenCount">Количество детей</label>
+                <input type="number"
+                       th:field="*{childrenCount}"
+                       min="0"
+                       step="1"
+                       required>
+                <p th:errors="*{childrenCount}" role="alert"></p>
+            </div>
+
+            <button type="submit">Создать бронирование</button>
+        </form>
+    </main>
+</body>
+</html>

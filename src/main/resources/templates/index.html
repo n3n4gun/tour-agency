@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Туристическое агентство</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Основная навигация">
+        <a th:href="@{/tours}">Каталог туров</a>
+        <!-- Гость видит ссылки регистрации и входа. -->
+        <div class="nav-links" th:if="${currentUserEmail == null}">
+            <a th:href="@{/register}">Регистрация</a>
+            <a th:href="@{/login}">Вход</a>
+        </div>
+    
+        <!-- Вошедший пользователь видит свой email и кнопку выхода. -->
+        <div class="nav-account" th:if="${currentUserEmail != null}">
+            <a th:if="${isAdmin}" th:href="@{/admin/bookings}">Управление бронированиями</a>
+            <a th:if="${isUser and !isAdmin}" th:href="@{/bookings}">Мои бронирования</a>
+            <p>
+                Вы вошли как
+                <span th:text="${currentUserEmail}"></span>
+            </p>
+        
+            <form th:action="@{/logout}" method="post">
+                <button class="button-secondary" type="submit">Выйти</button>
+            </form>
+        </div>
+    </nav>
+
+    <main class="hero">
+        <p class="eyebrow">Время для путешествий</p>
+        <h1>Туристическое агентство</h1>
+        <p>Подберите тур и запланируйте свою поездку.</p>
+        <a class="button" th:href="@{/tours}">Выбрать путешествие →</a>
+    </main>
+</body>
+</html>

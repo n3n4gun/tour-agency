@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${tour.tourName}">Информация о туре</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/tours}">Каталог туров</a>
+    </nav>
+
+    <main class="details-main">
+        <h1 th:text="${tour.tourName}"></h1>
+
+        <p th:if="${tour.description != null
+                     and !#strings.isEmpty(#strings.trim(tour.description))}"
+           th:text="${tour.description}">
+        </p>
+
+        <dl>
+            <dt>Вид тура</dt>
+            <dd th:text="${tour.tourTypeName}"></dd>
+
+            <dt>Город</dt>
+            <dd th:text="${tour.cityName}"></dd>
+
+            <dt>Отель</dt>
+            <dd th:text="${tour.hotelName}"></dd>
+
+            <dt>Количество звёзд отеля</dt>
+            <dd th:text="${tour.hotelStars}"></dd>
+
+            <dt>Количество ночей</dt>
+            <dd th:text="${tour.durationNights}"></dd>
+
+            <dt>Цена за взрослого</dt>
+            <dd th:text="${tour.pricePerAdultPerson}"></dd>
+
+            <dt>Цена за ребёнка</dt>
+            <dd th:text="${tour.pricePerChildPerson}"></dd>
+        </dl>
+
+        <p>
+            <a class="button"
+               th:href="@{/bookings/new/{id}(id=${tour.id})}">
+                Забронировать
+            </a>
+        </p>
+
+        <section class="reviews" aria-labelledby="reviews-heading">
+            <h2 id="reviews-heading">Отзывы</h2>
+
+            <p class="empty-state" th:if="${#lists.isEmpty(reviews)}">
+                Отзывов пока нет.
+            </p>
+
+            <!-- Показываем каждый отзыв отдельным блоком. -->
+            <article class="review-card" th:each="review : ${reviews}">
+                <h3 th:text="${review.authorName}"></h3>
+
+                <p>
+                    Оценка:
+                    <span th:text="${review.rating}"></span>
+                    из 5
+                </p>
+
+                <p th:if="${review.text != null
+                             and !#strings.isEmpty(#strings.trim(review.text))}"
+                   th:text="${review.text}">
+                </p>
+
+                <p>
+                    Дата публикации:
+                    <time th:datetime="${review.createdAt}"
+                          th:text="${#temporals.format(
+                              review.createdAt, 'dd.MM.yyyy HH:mm'
+                          )}">
+                    </time>
+                </p>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

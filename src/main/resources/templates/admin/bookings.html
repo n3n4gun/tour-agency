@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление бронированиями</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/tours}">Каталог туров</a>
+    </nav>
+
+    <main>
+        <h1>Управление бронированиями</h1>
+
+        <p class="notice"
+           th:if="${successMessage != null}"
+           th:text="${successMessage}"
+           role="status">
+        </p>
+
+        <p class="notice"
+           th:if="${errorMessage != null}"
+           th:text="${errorMessage}"
+           role="alert">
+        </p>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(bookings)}">
+            Бронирований пока нет.
+        </p>
+
+        <div class="tour-grid">
+            <!-- Администратор видит заявки всех клиентов. -->
+            <article class="tour-card" th:each="booking : ${bookings}">
+                <h2 th:text="${booking.tourName}"></h2>
+
+                <p>
+                    Номер бронирования:
+                    <span th:text="${booking.id}"></span>
+                </p>
+
+                <p>
+                    Дата оформления:
+                    <time th:datetime="${booking.createdAt}"
+                          th:text="${#temporals.format(booking.createdAt, 'dd.MM.yyyy HH:mm')}">
+                    </time>
+                </p>
+
+                <p>
+                    Дата отправления:
+                    <time th:datetime="${booking.departureDate}"
+                          th:text="${#temporals.format(booking.departureDate, 'dd.MM.yyyy')}">
+                    </time>
+                </p>
+
+                <p>
+                    Взрослых:
+                    <span th:text="${booking.adultsCount}"></span>,
+                    детей:
+                    <span th:text="${booking.childrenCount}"></span>
+                </p>
+
+                <p>
+                    Итоговая стоимость:
+                    <span th:text="${booking.totalPrice}"></span>
+                </p>
+
+                <p th:switch="${booking.status.name()}">
+                    Статус:
+                    <span th:case="'NEW'">Ожидает подтверждения</span>
+                    <span th:case="'CONFIRMED'">Подтверждено</span>
+                    <span th:case="'PAID'">Оплачено</span>
+                    <span th:case="'COMPLETED'">Поездка завершена</span>
+                    <span th:case="'CANCELLED'">Отменено</span>
+                    <span th:case="*" th:text="${booking.status}"></span>
+                </p>
+
+                <a class="button button-secondary"
+                   th:href="@{/tours/{id}(id=${booking.tourId})}">
+                    Посмотреть тур
+                </a>
+
+                <!-- Проверку даты и актуального статуса выполняет сервис. -->
+                <form th:if="${booking.status.name() == 'NEW'}"
+                      th:action="@{/admin/bookings/{id}/confirm(id=${booking.id})}"
+                      method="post">
+                    <button type="submit">Подтвердить бронирование</button>
+                </form>
+
+                <form th:if="${booking.status.name() == 'PAID'}"
+                      th:action="@{/admin/bookings/{id}/complete(id=${booking.id})}"
+                      method="post">
+                    <button type="submit">Завершить поездку</button>
+                </form>
+            </article>
+        </div>
+    </main>
+</body>
+</html>
