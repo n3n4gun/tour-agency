@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отзыв о поездке</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/bookings}">Мои бронирования</a>
+    </nav>
+
+    <main class="auth-card">
+        <h1>Отзыв о поездке</h1>
+        <h2 th:text="${booking.tourName}"></h2>
+
+        <form class="auth-form"
+              th:action="@{/bookings/{id}/review(id=${booking.id})}"
+              th:object="${reviewDto}"
+              method="post">
+
+            <!-- Общие ошибки, например повторный отзыв по той же поездке. -->
+            <div th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="error : ${#fields.globalErrors()}"
+                   th:text="${error}"
+                   role="alert"></p>
+            </div>
+
+            <div>
+                <label for="rating">Оценка от 1 до 5</label>
+                <input type="number" th:field="*{rating}"
+                       min="1" max="5" step="1" required>
+                <p th:errors="*{rating}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="text">Ваш отзыв</label>
+                <textarea th:field="*{text}" rows="6" maxlength="5000"
+                          placeholder="Поделитесь впечатлениями о поездке"></textarea>
+                <p th:errors="*{text}" role="alert"></p>
+            </div>
+
+            <button type="submit">Опубликовать отзыв</button>
+        </form>
+    </main>
+</body>
+</html>

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import ru.naboyshchikovfp.tour_agency.dto.UserProfileDto;
 import ru.naboyshchikovfp.tour_agency.exceptions.NotFoundException;
@@ -100,6 +101,31 @@ public class UserService {
     @Transactional(readOnly = true)
     public Page<UserListDto> getUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(UserListDto::fromModel);
+    }
+
+    // Возвращает профиль пользователя, вошедшего в приложение
+    @PreAuthorize("isAuthenticated()")
+    @Transactional(readOnly = true)
+    public UserProfileDto getMyProfile() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        return UserProfileDto.fromModel(user);
+
+    }
+
+    // Обновляет имя, фамилию и телефон текущего пользователя.
+    @PreAuthorize("isAuthenticated()")
+    @Transactional
+    public void updateMyProfile(@NotNull @Valid UserProfileDto dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        user.setFirstName(dto.getFirstName().trim());
+        user.setLastName(dto.getLastName().trim());
+
+        String phone = dto.getPhone();
+        user.setPhone(phone == null || phone.isBlank() ? null : phone.trim());
     }
 
 }

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление турами</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/management/hotels}">Управление отелями</a>
+        <a th:href="@{/tours}">Каталог туров</a>
+    </nav>
+
+    <main>
+        <h1>Управление турами</h1>
+
+        <p><a class="button" th:href="@{/management/tours/new}">Добавить тур</a></p>
+
+        <p class="notice" th:if="${successMessage != null}"
+           th:text="${successMessage}" role="status"></p>
+        <p class="notice" th:if="${errorMessage != null}"
+           th:text="${errorMessage}" role="alert"></p>
+
+        <p>Всего туров: <span th:text="${toursPage.totalElements}"></span></p>
+        <p class="empty-state" th:if="${toursPage.empty}">На этой странице туров нет.</p>
+
+        <div class="tour-grid">
+            <article class="tour-card" th:each="tour : ${toursPage.content}">
+                <h2 th:text="${tour.tourName}"></h2>
+                <p>Идентификатор: <span th:text="${tour.id}"></span></p>
+                <p>Город: <span th:text="${tour.cityName}"></span></p>
+                <p>Отель: <span th:text="${tour.hotelName}"></span></p>
+                <p>Вид тура: <span th:text="${tour.tourTypeName}"></span></p>
+                <p>Количество ночей: <span th:text="${tour.durationNights}"></span></p>
+                <p>Цена за взрослого: <span th:text="${tour.pricePerAdultPerson}"></span></p>
+                <p>Цена за ребёнка: <span th:text="${tour.pricePerChildPerson}"></span></p>
+                <a class="button button-secondary" th:href="@{/tours/{id}(id=${tour.id})}">
+                    Посмотреть тур
+                </a>
+                <a class="button button-secondary"
+                   th:href="@{/management/tours/{id}/edit(id=${tour.id})}">
+                    Редактировать
+                </a>
+                <!-- Сервис не разрешает удалять тур с бронированиями или записями избранного. -->
+                <form th:action="@{/management/tours/{id}/delete(id=${tour.id})}"
+                      method="post">
+                    <button class="button-secondary" type="submit">Удалить тур</button>
+                </form>
+            </article>
+        </div>
+
+        <nav class="pagination" th:if="${toursPage.totalPages > 1}"
+             aria-label="Страницы списка туров">
+            <a th:if="${toursPage.hasPrevious()}"
+               th:href="@{/management/tours(page=${toursPage.number - 1})}">Назад</a>
+            <span>
+                Страница <span th:text="${toursPage.number + 1}"></span>
+                из <span th:text="${toursPage.totalPages}"></span>
+            </span>
+            <a th:if="${toursPage.hasNext()}"
+               th:href="@{/management/tours(page=${toursPage.number + 1})}">Далее</a>
+        </nav>
+    </main>
+</body>
+</html>

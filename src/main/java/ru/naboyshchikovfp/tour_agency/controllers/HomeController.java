@@ -27,6 +27,13 @@ public class HomeController {
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("isUser", isUser);
 
+        boolean canManageHotels = principal instanceof Authentication authentication 
+                && authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")
+                    || authority.getAuthority().equals("ROLE_MANAGER"));
+
+        model.addAttribute("canManageHotels", canManageHotels);
+
         return "index";
     }
 

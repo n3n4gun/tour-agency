@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${editing ? 'Редактирование тура' : 'Добавление тура'}">Тур</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/management/tours}">Список туров</a>
+        <a th:href="@{/management/hotels}">Управление отелями</a>
+    </nav>
+
+    <main class="auth-card">
+        <h1 th:text="${editing ? 'Редактирование тура' : 'Добавление тура'}"></h1>
+
+        <p class="notice" th:if="${#lists.isEmpty(hotels)}" role="alert">
+            Для создания тура нужен отель.
+            <a th:href="@{/management/hotels/new}">Добавить отель</a>
+        </p>
+
+        <form class="auth-form"
+              th:action="${editing} ? @{/management/tours/{id}/edit(id=${tourId})} : @{/management/tours/new}"
+              th:object="${tourDto}" method="post">
+            <div th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="error : ${#fields.globalErrors()}"
+                   th:text="${error}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="tourName">Название тура</label>
+                <input type="text" th:field="*{tourName}" minlength="2" maxlength="100" required>
+                <p th:errors="*{tourName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="tourTypeName">Вид тура</label>
+                <input type="text" th:field="*{tourTypeName}" maxlength="50" required>
+                <p th:errors="*{tourTypeName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="hotelId">Отель</label>
+                <select th:field="*{hotelId}" required>
+                    <option value="">Выберите отель</option>
+                    <option th:each="hotel : ${hotels}" th:value="${hotel.id}"
+                            th:text="${hotel.hotelName + ' — ' + hotel.cityName}"></option>
+                </select>
+                <p th:errors="*{hotelId}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="pricePerAdultPerson">Цена за взрослого</label>
+                <input type="number" th:field="*{pricePerAdultPerson}"
+                       min="0.01" max="99999999.99" step="0.01" required>
+                <p th:errors="*{pricePerAdultPerson}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="pricePerChildPerson">Цена за ребёнка</label>
+                <input type="number" th:field="*{pricePerChildPerson}"
+                       min="0" max="99999999.99" step="0.01" required>
+                <p th:errors="*{pricePerChildPerson}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="durationNights">Количество ночей</label>
+                <input type="number" th:field="*{durationNights}" min="1" step="1" required>
+                <p th:errors="*{durationNights}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="description">Описание программы (необязательно)</label>
+                <textarea th:field="*{description}" rows="6" maxlength="5000"></textarea>
+                <p th:errors="*{description}" role="alert"></p>
+            </div>
+
+            <button type="submit" th:disabled="${#lists.isEmpty(hotels)}"
+                    th:text="${editing ? 'Сохранить изменения' : 'Добавить тур'}"></button>
+        </form>
+    </main>
+</body>
+</html>

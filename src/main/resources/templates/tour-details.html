@@ -43,11 +43,22 @@
             <dd th:text="${tour.pricePerChildPerson}"></dd>
         </dl>
 
-        <p>
+        <p th:if="${canUseClientActions == true}">
             <a class="button"
                th:href="@{/bookings/new/{id}(id=${tour.id})}">
                 Забронировать
             </a>
+        </p>
+
+        <!-- Добавление в избранное изменяет данные, поэтому используется POST-форма. -->
+        <form th:if="${canUseClientActions == true}"
+              th:action="@{/favorites/{id}/add(id=${tour.id})}" method="post">
+            <button class="button-secondary" type="submit">В избранное</button>
+        </form>
+
+        <p class="notice" th:if="${isGuest == true}">
+            <a th:href="@{/login}">Войдите</a>, чтобы забронировать тур
+            или добавить его в избранное.
         </p>
 
         <section class="reviews" aria-labelledby="reviews-heading">

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Избранные туры</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/tours}">Каталог туров</a>
+        <a th:href="@{/bookings}">Мои бронирования</a>
+    </nav>
+
+    <main>
+        <h1>Избранные туры</h1>
+
+        <p class="notice" th:if="${successMessage != null}"
+           th:text="${successMessage}" role="status"></p>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(tours)}">
+            В избранном пока нет туров.
+            <a th:href="@{/tours}">Перейти в каталог</a>
+        </p>
+
+        <!-- Контроллер передаёт обычный список TourViewDto. -->
+        <div class="tour-grid">
+            <article class="tour-card" th:each="tour : ${tours}">
+                <h2 th:text="${tour.tourName}"></h2>
+
+                <p>Город: <span th:text="${tour.cityName}"></span></p>
+                <p>
+                    Отель: <span th:text="${tour.hotelName}"></span>,
+                    звёзд: <span th:text="${tour.hotelStars}"></span>
+                </p>
+                <p>Вид тура: <span th:text="${tour.tourTypeName}"></span></p>
+                <p>Количество ночей: <span th:text="${tour.durationNights}"></span></p>
+                <p>Цена за взрослого: <span th:text="${tour.pricePerAdultPerson}"></span></p>
+                <p>Цена за ребёнка: <span th:text="${tour.pricePerChildPerson}"></span></p>
+
+                <a class="button" th:href="@{/tours/{id}(id=${tour.id})}">
+                    Подробнее →
+                </a>
+
+                <!-- Удаляется запись избранного текущего клиента, сам тур сохраняется. -->
+                <form th:action="@{/favorites/{id}/remove(id=${tour.id})}"
+                      method="post">
+                    <button class="button-secondary" type="submit">
+                        Удалить из избранного
+                    </button>
+                </form>
+            </article>
+        </div>
+    </main>
+</body>
+</html>

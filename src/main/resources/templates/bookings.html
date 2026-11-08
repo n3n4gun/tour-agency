@@ -15,6 +15,10 @@
     <main>
         <h1>Мои бронирования</h1>
 
+        <p class="notice" th:if="${param.reviewUnavailable}" role="alert">
+            Отзыв можно оставить только после завершённой поездки.
+        </p>
+
         <p class="notice" th:if="${param.created}" role="status">
             Бронирование создано. Ожидайте подтверждения сотрудником.
         </p>
@@ -81,6 +85,12 @@
                 <a class="button button-secondary"
                    th:href="@{/tours/{id}(id=${booking.tourId})}">
                     Посмотреть тур
+                </a>
+
+                <a class="button"
+                   th:if="${booking.status.name() == 'COMPLETED'}"
+                   th:href="@{/bookings/{id}/review(id=${booking.id})}">
+                    Оставить отзыв
                 </a>
 
                 <!-- Это учебная имитация оплаты без списания денежных средств. -->

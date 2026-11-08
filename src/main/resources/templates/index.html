@@ -17,8 +17,14 @@
     
         <!-- Вошедший пользователь видит свой email и кнопку выхода. -->
         <div class="nav-account" th:if="${currentUserEmail != null}">
+            <a th:href="@{/profile}">Мой профиль</a>
+            <a th:if="${canManageHotels == true}"
+               th:href="@{/management/hotels}">Управление отелями</a>
+            <a th:if="${canManageHotels == true}"
+               th:href="@{/management/tours}">Управление турами</a>
             <a th:if="${isAdmin}" th:href="@{/admin/bookings}">Управление бронированиями</a>
             <a th:if="${isUser and !isAdmin}" th:href="@{/bookings}">Мои бронирования</a>
+            <a th:if="${isUser and !isAdmin}" th:href="@{/favorites}">Избранное</a>
             <p>
                 Вы вошли как
                 <span th:text="${currentUserEmail}"></span>

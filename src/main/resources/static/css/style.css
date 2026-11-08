@@ -115,7 +115,7 @@ p { margin: 0 0 16px; }
 .auth-form > button { grid-column: 1 / -1; }
 
 label { display: block; margin-bottom: 7px; font-size: .9rem; font-weight: 600; }
-input:not([type="hidden"]) {
+input:not([type="hidden"]), select {
     display: block;
     width: 100%;
     min-height: 46px;
@@ -127,7 +127,20 @@ input:not([type="hidden"]) {
     font: inherit;
 }
 
-input:not([type="hidden"]):focus { border-color: var(--accent); }
+input:not([type="hidden"]):focus, select:focus { border-color: var(--accent); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+textarea {
+    display: block;
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid #cbd9d0;
+    border-radius: 9px;
+    background: #fcfdfb;
+    color: var(--text);
+    font: inherit;
+    resize: vertical;
+}
+textarea:focus { border-color: var(--accent); }
 .auth-form div > p, .filter-form div > p { margin: 6px 0 0; color: var(--error); font-size: .85rem; }
 .notice { margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; background: #eaf5eb; color: #245735; }
 [role="alert"] { color: var(--error); }

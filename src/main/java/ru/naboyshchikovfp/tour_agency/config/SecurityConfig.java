@@ -33,6 +33,7 @@ public class SecurityConfig {
             .requestMatchers(
                 HttpMethod.GET, "/tours", "/tours/**"
             ).permitAll()
+            .requestMatchers("/management/**").hasAnyRole("ADMIN", "MANAGER")
             .requestMatchers("/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated()
         )

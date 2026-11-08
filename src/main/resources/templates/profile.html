@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/tours}">Каталог туров</a>
+    </nav>
+
+    <main class="auth-card">
+        <h1>Мой профиль</h1>
+
+        <p class="notice" th:if="${successMessage != null}"
+           th:text="${successMessage}" role="status"></p>
+
+        <!-- Идентификатор пользователя не отправляется: владелец определяется по сессии. -->
+        <form class="auth-form" th:action="@{/profile}"
+              th:object="${userProfileDto}" method="post">
+            <div>
+                <label for="firstName">Имя</label>
+                <input type="text" th:field="*{firstName}"
+                       autocomplete="given-name" maxlength="50" required>
+                <p th:errors="*{firstName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="lastName">Фамилия</label>
+                <input type="text" th:field="*{lastName}"
+                       autocomplete="family-name" maxlength="50" required>
+                <p th:errors="*{lastName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="phone">Телефон (необязательно)</label>
+                <input type="tel" th:field="*{phone}"
+                       autocomplete="tel" aria-describedby="phone-hint">
+                <small id="phone-hint">От 10 до 15 цифр, допускается знак + в начале.</small>
+                <p th:errors="*{phone}" role="alert"></p>
+            </div>
+
+            <button type="submit">Сохранить изменения</button>
+        </form>
+    </main>
+</body>
+</html>

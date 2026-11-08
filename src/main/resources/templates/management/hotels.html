@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление отелями</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/management/tours}">Управление турами</a>
+        <a th:href="@{/tours}">Каталог туров</a>
+        <a th:href="@{/profile}">Мой профиль</a>
+    </nav>
+
+    <main>
+        <h1>Управление отелями</h1>
+
+        <p>
+            <a class="button" th:href="@{/management/hotels/new}">Добавить отель</a>
+        </p>
+
+        <p class="notice" th:if="${successMessage != null}"
+           th:text="${successMessage}" role="status"></p>
+        <p class="notice" th:if="${errorMessage != null}"
+           th:text="${errorMessage}" role="alert"></p>
+
+        <p>
+            Всего отелей:
+            <span th:text="${hotelsPage.totalElements}"></span>
+        </p>
+
+        <p class="empty-state" th:if="${hotelsPage.empty}">
+            На этой странице отелей нет.
+        </p>
+
+        <div class="tour-grid">
+            <article class="tour-card" th:each="hotel : ${hotelsPage.content}">
+                <h2 th:text="${hotel.hotelName}"></h2>
+                <p>Идентификатор: <span th:text="${hotel.id}"></span></p>
+                <p>Город: <span th:text="${hotel.cityName}"></span></p>
+                <p>Количество звёзд: <span th:text="${hotel.stars}"></span></p>
+                <a class="button button-secondary"
+                   th:href="@{/management/hotels/{id}/edit(id=${hotel.id})}">
+                    Редактировать
+                </a>
+
+                <!-- Сервис запрещает удаление отеля, используемого в турах. -->
+                <form th:action="@{/management/hotels/{id}/delete(id=${hotel.id})}"
+                      method="post">
+                    <button class="button-secondary" type="submit">Удалить отель</button>
+                </form>
+            </article>
+        </div>
+
+        <!-- Передаём номер страницы; сортировка и размер определяются контроллером. -->
+        <nav class="pagination" th:if="${hotelsPage.totalPages > 1}"
+             aria-label="Страницы списка отелей">
+            <a th:if="${hotelsPage.hasPrevious()}"
+               th:href="@{/management/hotels(page=${hotelsPage.number - 1})}">
+                Назад
+            </a>
+            <span>
+                Страница <span th:text="${hotelsPage.number + 1}"></span>
+                из <span th:text="${hotelsPage.totalPages}"></span>
+            </span>
+            <a th:if="${hotelsPage.hasNext()}"
+               th:href="@{/management/hotels(page=${hotelsPage.number + 1})}">
+                Далее
+            </a>
+        </nav>
+    </main>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${editing ? 'Редактирование отеля' : 'Добавление отеля'}">Отель</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/management/hotels}">Список отелей</a>
+    </nav>
+
+    <main class="auth-card">
+        <h1 th:text="${editing ? 'Редактирование отеля' : 'Добавление отеля'}"></h1>
+
+        <!-- При редактировании контроллер дополнительно передаст hotelId. -->
+        <form class="auth-form"
+              th:action="${editing} ? @{/management/hotels/{id}/edit(id=${hotelId})} : @{/management/hotels/new}"
+              th:object="${hotelDto}" method="post">
+            <div>
+                <label for="hotelName">Название отеля</label>
+                <input type="text" th:field="*{hotelName}" minlength="2" maxlength="100" required>
+                <p th:errors="*{hotelName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="cityName">Город</label>
+                <input type="text" th:field="*{cityName}" minlength="2" maxlength="150" required>
+                <p th:errors="*{cityName}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="stars">Количество звёзд</label>
+                <input type="number" th:field="*{stars}" min="1" max="5" step="1" required>
+                <p th:errors="*{stars}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="address">Адрес</label>
+                <input type="text" th:field="*{address}" minlength="2" maxlength="255" required>
+                <p th:errors="*{address}" role="alert"></p>
+            </div>
+
+            <div>
+                <label for="description">Описание и удобства (необязательно)</label>
+                <textarea th:field="*{description}" rows="6" maxlength="5000"></textarea>
+                <p th:errors="*{description}" role="alert"></p>
+            </div>
+
+            <button type="submit" th:text="${editing ? 'Сохранить изменения' : 'Добавить отель'}"></button>
+        </form>
+    </main>
+</body>
+</html>
