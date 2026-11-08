@@ -1,0 +1,33 @@
+# История Git
+.git
+.gitignore
+.gitattributes
+
+# Локальные результаты сборки
+target/
+build/
+out/
+
+# Настройки IDE
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+*.iml
+
+# Вспомогательные скрипты и документация
+scripts/
+*.md
+
+# Локальные переменные окружения
+.env
+.env.*
+!.env.example
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
