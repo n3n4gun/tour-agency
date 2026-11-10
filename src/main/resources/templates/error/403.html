@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доступ запрещён</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <main class="error-card">
+        <p class="error-code" aria-hidden="true">403</p>
+        <h1>Доступ запрещён</h1>
+        <p>У вас нет разрешения на просмотр этой страницы или выполнение действия.</p>
+
+        <nav class="site-nav" aria-label="Навигация">
+            <a th:href="@{/}">На главную</a>
+            <a th:href="@{/tours}">Каталог туров</a>
+        </nav>
+    </main>
+</body>
+</html>

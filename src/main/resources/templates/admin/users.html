@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользователи</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="site-nav" aria-label="Навигация">
+        <a th:href="@{/}">На главную</a>
+        <a th:href="@{/admin/bookings}">Управление бронированиями</a>
+        <a th:href="@{/profile}">Мой профиль</a>
+    </nav>
+
+    <main>
+        <h1>Пользователи</h1>
+        <p class="notice" th:if="${successMessage != null}"
+           th:text="${successMessage}" role="status"></p>
+        <p class="notice" th:if="${errorMessage != null}"
+           th:text="${errorMessage}" role="alert"></p>
+
+        <p>Всего пользователей: <span th:text="${userPage.totalElements}"></span></p>
+
+        <p class="empty-state" th:if="${userPage.empty}">
+            На этой странице пользователей нет.
+            <a th:if="${userPage.number > 0}" th:href="@{/admin/users}">Перейти к первой странице</a>
+        </p>
+
+        <div class="tour-grid">
+            <article class="tour-card" th:each="user : ${userPage.content}">
+                <h2 th:text="${user.firstName + ' ' + user.lastName}"></h2>
+                <p>Идентификатор: <span th:text="${user.id}"></span></p>
+                <p>Email: <span th:text="${user.email}"></span></p>
+                <p th:switch="${user.role.name()}">
+                    Роль:
+                    <span th:case="'USER'">Клиент</span>
+                    <span th:case="'MANAGER'">Менеджер</span>
+                    <span th:case="'ADMIN'">Администратор</span>
+                    <span th:case="*" th:text="${user.role}"></span>
+                </p>
+                <p>Доступ: <span th:text="${user.enabled ? 'Разрешён' : 'Заблокирован'}"></span></p>
+                <!-- Передаём новое состояние доступа; допустимость изменения проверяет сервис. -->
+                <form th:action="@{/admin/users/{id}/enabled(id=${user.id})}" method="post">
+                    <input type="hidden" name="enabled" th:value="${!user.enabled}">
+                    <button class="button-secondary" type="submit"
+                            th:text="${user.enabled ? 'Заблокировать' : 'Разблокировать'}">
+                        Изменить доступ
+                    </button>
+                </form>
+            </article>
+        </div>
+
+        <!-- Нумерация страниц в запросе начинается с нуля. -->
+        <nav class="pagination" th:if="${userPage.totalPages > 1 and !userPage.empty}"
+             aria-label="Страницы списка пользователей">
+            <a th:if="${userPage.hasPrevious()}"
+               th:href="@{/admin/users(page=${userPage.number - 1})}">Назад</a>
+            <span>
+                Страница <span th:text="${userPage.number + 1}"></span>
+                из <span th:text="${userPage.totalPages}"></span>
+            </span>
+            <a th:if="${userPage.hasNext()}"
+               th:href="@{/admin/users(page=${userPage.number + 1})}">Далее</a>
+        </nav>
+    </main>
+</body>
+</html>

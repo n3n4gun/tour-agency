@@ -89,10 +89,20 @@ public class UserService {
     }
 
     // Позволяет администратору блокировать (false) и разблокировать (true) пользователя.
+    // Изменяет доступ пользователя и запрещает блокировку своей учётной записи.
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional 
     public void setEnabled(Long userId, boolean enabled) {
         UserModel user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!enabled && user.getEmail().equalsIgnoreCase(currentEmail)) {
+            throw new ValidationException(
+                "enabled",
+                "Нельзя заблокировать собственную учётную запись"
+            );
+        }
+
         user.setEnabled(enabled);
     }
 

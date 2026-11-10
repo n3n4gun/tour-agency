@@ -46,7 +46,8 @@ public class SecurityConfig {
             .permitAll()                    // Разрешает гостям доступ к адресам входа
         )
 
-        .logout(Customizer.withDefaults());
+        .logout(Customizer.withDefaults())
+        .exceptionHandling(exceptions -> exceptions.accessDeniedPage("/access-denied"));
 
         return http.build();
     }

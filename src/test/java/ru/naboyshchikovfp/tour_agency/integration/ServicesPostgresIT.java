@@ -89,7 +89,7 @@ class ServicesPostgresIT {
         SecurityContextHolder.clearContext();
         // URL получен от контейнера: очистка затрагивает исключительно временную БД.
         jdbc.execute("TRUNCATE TABLE reviews, favorites, bookings, tours, hotels, users RESTART IDENTITY CASCADE");
-        client = users.save(user());
+        client = users.save(ru.naboyshchikovfp.tour_agency.support.TestData.user());
         otherClient = users.save(new UserModel("other@example.com", "stored-hash",
                 "Petr", "Ivanov", null, true));
         hotel = hotels.save(hotel());
@@ -109,6 +109,108 @@ class ServicesPostgresIT {
         return MockMvcBuilders.webAppContextSetup(webContext)
                 .apply(springSecurity())
                 .build();
+    }
+
+    @Test
+    void adminUsersPageRendersAccountsAndAccessFormsWithoutPasswordHashes() throws Exception {
+        web().perform(get("/admin/users").with(user("admin@example.com").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/users"))
+                .andExpect(model().attributeExists("userPage"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(client.getEmail())))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/admin/users/" + client.getId() + "/enabled")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"_csrf\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("stored-hash"))));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"USER", "MANAGER"})
+    void nonAdministratorsCannotListOrBlockUsers(String role) throws Exception {
+        MockMvc mvc = web();
+        mvc.perform(get("/admin/users").with(user(client.getEmail()).roles(role)))
+                .andExpect(status().isForbidden())
+                .andExpect(forwardedUrl("/access-denied"));
+        mvc.perform(post("/admin/users/{id}/enabled", otherClient.getId())
+                        .with(user(client.getEmail()).roles(role)).with(csrf()).param("enabled", "false"))
+                .andExpect(status().isForbidden());
+        assertThat(users.findById(otherClient.getId()).orElseThrow().isEnabled()).isTrue();
+    }
+
+    @Test
+    void anonymousUserIsRedirectedToLoginFromUserManagement() throws Exception {
+        SecurityContextHolder.clearContext();
+        web().perform(get("/admin/users"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void webBlockingAndUnblockingArePersisted() throws Exception {
+        MockMvc mvc = web();
+        for (boolean enabled : new boolean[]{false, true}) {
+            mvc.perform(post("/admin/users/{id}/enabled", client.getId())
+                            .with(user("admin@example.com").roles("ADMIN")).with(csrf())
+                            .param("enabled", Boolean.toString(enabled)))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/admin/users"))
+                    .andExpect(flash().attributeExists("successMessage"));
+            assertThat(users.findById(client.getId()).orElseThrow().isEnabled()).isEqualTo(enabled);
+        }
+    }
+
+    @Test
+    void adminCannotBlockOwnAccountThroughWeb() throws Exception {
+        client.setRole(UserRole.ADMIN);
+        users.save(client);
+        web().perform(post("/admin/users/{id}/enabled", client.getId())
+                        .with(user(client.getEmail()).roles("ADMIN")).with(csrf()).param("enabled", "false"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("errorMessage"))
+                .andExpect(flash().attributeCount(1));
+        assertThat(users.findById(client.getId()).orElseThrow().isEnabled()).isTrue();
+    }
+
+    @Test
+    void blockingRequiresCsrfAndMissingAccountReturns404() throws Exception {
+        MockMvc mvc = web();
+        mvc.perform(post("/admin/users/{id}/enabled", client.getId())
+                        .with(user("admin@example.com").roles("ADMIN")).param("enabled", "false"))
+                .andExpect(status().isForbidden());
+        assertThat(users.findById(client.getId()).orElseThrow().isEnabled()).isTrue();
+        mvc.perform(post("/admin/users/999999/enabled")
+                        .with(user("admin@example.com").roles("ADMIN")).with(csrf()).param("enabled", "false"))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error/404"));
+    }
+
+    @Test
+    void blockedAccountCannotLogInUntilUnblocked() throws Exception {
+        client.setPasswordHash(passwordEncoder.encode("Password123!"));
+        users.save(client);
+        loginAdmin();
+        userService.setEnabled(client.getId(), false);
+        SecurityContextHolder.clearContext();
+        MockMvc mvc = web();
+        mvc.perform(post("/login").with(csrf())
+                        .param("username", client.getEmail()).param("password", "Password123!"))
+                .andExpect(redirectedUrl("/login?error"))
+                .andExpect(org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated());
+        loginAdmin();
+        userService.setEnabled(client.getId(), true);
+        SecurityContextHolder.clearContext();
+        mvc.perform(post("/login").with(csrf())
+                        .param("username", client.getEmail()).param("password", "Password123!"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated()
+                        .withUsername(client.getEmail()));
+    }
+
+    @Test
+    void accessDeniedPageRendersWithForbiddenStatus() throws Exception {
+        web().perform(get("/access-denied").with(user(client.getEmail()).roles("USER")))
+                .andExpect(status().isForbidden())
+                .andExpect(view().name("error/403"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Доступ запрещён")));
     }
 
     private BookingModel storedBooking(UserModel owner, BookingStatus status, LocalDate departure) {
@@ -409,7 +511,7 @@ class ServicesPostgresIT {
 
     @Test
     void postgresEnforcesUniqueEmail() {
-        assertThatThrownBy(() -> users.saveAndFlush(user())).isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> users.saveAndFlush(ru.naboyshchikovfp.tour_agency.support.TestData.user())).isInstanceOf(DataIntegrityViolationException.class);
         assertThat(users.count()).isEqualTo(2);
     }
 

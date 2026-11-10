@@ -23,6 +23,7 @@
             <a th:if="${canManageHotels == true}"
                th:href="@{/management/tours}">Управление турами</a>
             <a th:if="${isAdmin}" th:href="@{/admin/bookings}">Управление бронированиями</a>
+            <a th:if="${isAdmin}" th:href="@{/admin/users}">Пользователи</a>
             <a th:if="${isUser and !isAdmin}" th:href="@{/bookings}">Мои бронирования</a>
             <a th:if="${isUser and !isAdmin}" th:href="@{/favorites}">Избранное</a>
             <p>

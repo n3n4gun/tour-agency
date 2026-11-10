@@ -6,6 +6,9 @@ import static org.mockito.Mockito.*;
 import static ru.naboyshchikovfp.tour_agency.support.TestData.*;
 
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -21,6 +24,30 @@ class UserServiceTest {
     @Mock UserRepository repository;
     @Mock PasswordEncoder encoder;
     @InjectMocks UserService service;
+
+    @BeforeEach
+    void loginAdministrator() { authenticate("admin@example.com", "ADMIN"); }
+
+    @AfterEach
+    void clearAuthentication() { SecurityContextHolder.clearContext(); }
+
+    @Test
+    void administratorCannotBlockOwnAccountRegardlessOfEmailCase() {
+        UserModel account = user();
+        authenticate("CLIENT@EXAMPLE.COM", "ADMIN");
+        when(repository.findById(1L)).thenReturn(Optional.of(account));
+
+        assertThatThrownBy(() -> service.setEnabled(1L, false))
+                .isInstanceOfSatisfying(ValidationException.class,
+                        error -> assertThat(error.getField()).isEqualTo("enabled"));
+        assertThat(account.isEnabled()).isTrue();
+    }
+
+    @Test
+    void missingAccountCannotBeBlocked() {
+        assertThatThrownBy(() -> service.setEnabled(99L, false))
+                .isInstanceOf(NotFoundException.class);
+    }
 
     @Test
     void registrationNormalizesDataAndStoresEncodedPassword() {
