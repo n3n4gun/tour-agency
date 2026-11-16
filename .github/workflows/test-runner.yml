@@ -6,18 +6,18 @@ jobs:
   test:
     runs-on: [self-hosted, linux, minikube-deploy]
 
-  steps:
-    - name: Check tools
-      run: |
-        whoami
-        kubectl version --client
-        helm version
-    
-    - name: Check kubernetes connection
-      run: |
-        kubectl config current-context
-        kubectl get nodes
+    steps:
+      - name: Check tools
+        run: |
+          whoami
+          kubectl version --client
+          helm version
 
-    - name: Check helm access
-      run: |
-        helm list -A
+      - name: Check kubernetes connection
+        run: |
+          kubectl config current-context
+          kubectl get nodes
+
+      - name: Check helm access
+        run: |
+          helm list -A
