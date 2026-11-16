@@ -26,6 +26,8 @@ public class AdminBookingController {
     @GetMapping
     public String showBookings(Model model) {
         model.addAttribute("bookings", bookingService.getAllBookings());
+        model.addAttribute("bookingManagementPath", "/admin/bookings");
+        model.addAttribute("showUsersLink", true);
 
         return "admin/bookings";
     }

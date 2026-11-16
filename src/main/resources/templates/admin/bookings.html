@@ -9,7 +9,7 @@
 <body>
     <nav class="site-nav" aria-label="Навигация">
         <a th:href="@{/}">На главную</a>
-        <a th:href="@{/admin/users}">Пользователи</a>
+        <a th:if="${showUsersLink == true}" th:href="@{/admin/users}">Пользователи</a>
         <a th:href="@{/tours}">Каталог туров</a>
     </nav>
 
@@ -33,7 +33,7 @@
         </p>
 
         <div class="tour-grid">
-            <!-- Администратор видит заявки всех клиентов. -->
+            <!-- Сотрудник видит заявки всех клиентов. -->
             <article class="tour-card" th:each="booking : ${bookings}">
                 <h2 th:text="${booking.tourName}"></h2>
 
@@ -85,13 +85,13 @@
 
                 <!-- Проверку даты и актуального статуса выполняет сервис. -->
                 <form th:if="${booking.status.name() == 'NEW'}"
-                      th:action="@{/admin/bookings/{id}/confirm(id=${booking.id})}"
+                      th:action="@{${bookingManagementPath} + '/{id}/confirm'(id=${booking.id})}"
                       method="post">
                     <button type="submit">Подтвердить бронирование</button>
                 </form>
 
                 <form th:if="${booking.status.name() == 'PAID'}"
-                      th:action="@{/admin/bookings/{id}/complete(id=${booking.id})}"
+                      th:action="@{${bookingManagementPath} + '/{id}/complete'(id=${booking.id})}"
                       method="post">
                     <button type="submit">Завершить поездку</button>
                 </form>

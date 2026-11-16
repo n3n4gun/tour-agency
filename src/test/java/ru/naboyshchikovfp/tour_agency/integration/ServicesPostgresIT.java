@@ -112,6 +112,61 @@ class ServicesPostgresIT {
     }
 
     @Test
+    void managerCanViewConfirmAndCompleteClientBookingsThroughOwnController() throws Exception {
+        var pending = storedBooking(client, BookingStatus.NEW, LocalDate.now().plusDays(10));
+        var paid = storedBooking(otherClient, BookingStatus.PAID, LocalDate.now().minusDays(10));
+        MockMvc mvc = web();
+        mvc.perform(get("/").with(user("manager@example.com").roles("MANAGER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/management/bookings")));
+        mvc.perform(get("/management/bookings").with(user("manager@example.com").roles("MANAGER")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/management/bookings/" + pending.getId() + "/confirm")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/management/bookings/" + paid.getId() + "/complete")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("/admin/users"))));
+        mvc.perform(post("/management/bookings/{id}/confirm", pending.getId())
+                        .with(user("manager@example.com").roles("MANAGER")).with(csrf()))
+                .andExpect(redirectedUrl("/management/bookings"))
+                .andExpect(flash().attributeExists("successMessage"));
+        assertThat(bookings.findById(pending.getId()).orElseThrow().getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+        mvc.perform(post("/management/bookings/{id}/complete", paid.getId())
+                        .with(user("manager@example.com").roles("MANAGER")).with(csrf()))
+                .andExpect(redirectedUrl("/management/bookings"))
+                .andExpect(flash().attributeExists("successMessage"));
+        assertThat(bookings.findById(paid.getId()).orElseThrow().getStatus()).isEqualTo(BookingStatus.COMPLETED);
+    }
+
+    @Test
+    void managerBookingControllerEnforcesRolesCsrfAndBusinessRules() throws Exception {
+        var pending = storedBooking(client, BookingStatus.NEW, LocalDate.now().plusDays(10));
+        MockMvc mvc = web();
+        mvc.perform(get("/management/bookings").with(user(client.getEmail()).roles("USER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/management/bookings/{id}/confirm", pending.getId())
+                        .with(user(client.getEmail()).roles("USER")).with(csrf()))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/management/bookings/{id}/confirm", pending.getId())
+                        .with(user("manager@example.com").roles("MANAGER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/management/bookings/{id}/complete", pending.getId())
+                        .with(user("manager@example.com").roles("MANAGER")).with(csrf()))
+                .andExpect(redirectedUrl("/management/bookings"))
+                .andExpect(flash().attributeExists("errorMessage"));
+        mvc.perform(get("/admin/bookings").with(user("manager@example.com").roles("MANAGER")))
+                .andExpect(status().isForbidden());
+        assertThat(bookings.findById(pending.getId()).orElseThrow().getStatus()).isEqualTo(BookingStatus.NEW);
+    }
+
+    @Test
+    void adminBookingPageKeepsItsOwnActionsAndUserManagementLink() throws Exception {
+        var pending = storedBooking(client, BookingStatus.NEW, LocalDate.now().plusDays(10));
+        web().perform(get("/admin/bookings").with(user("admin@example.com").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/admin/bookings/" + pending.getId() + "/confirm")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/admin/users")));
+    }
+
+    @Test
     void adminUsersPageRendersAccountsAndAccessFormsWithoutPasswordHashes() throws Exception {
         web().perform(get("/admin/users").with(user("admin@example.com").roles("ADMIN")))
                 .andExpect(status().isOk())
